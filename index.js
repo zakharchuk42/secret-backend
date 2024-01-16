@@ -1,22 +1,74 @@
 const express = require('express')
 const cors = require('cors');
+const {connectToDb, getDb} = require('./db');
 require('dotenv').config()
+
 
 const app = express()
 app.use(express.json())
 app.use(cors());
 
-const root = require('./routes/index')
-const shop_list = require('./routes/shop-list')
-
-// Routes
-app.use('/', root)
-app.use('/shop-list', shop_list)
-
 // connection
 const PORT = process.env.PORT || 3001
-app.listen(PORT, () => {
-	console.log('working...')
+
+let db;
+connectToDb((err) => {
+	if (!err) {
+		app.listen(PORT, () => {
+			console.log('Working...')
+		})
+		db = getDb()
+	} else {
+		console.log('DB connection error')
+	}
 })
 
 
+// ROUTES
+app.get('/shop-lists', (req, res) => {
+	const shopLists = []
+
+	db
+	.collection('shoplists')
+	.find()
+	.forEach((list) => shopLists.push(list))
+	.then(() => {
+		res.status(200).json({shopLists})
+	}).catch(() => res.status(500).json({error: 'DB IN FIRE!!!!!'}))
+});
+
+app.post('/shop-lists', async(req, res) => {
+	await db.collection('shoplists').deleteMany({});
+
+	if(req.body.shopList.length > 0) {
+		db
+		.collection('shoplists')
+		.insertMany(req.body.shopList)
+		.then((result) => {
+			res.status(200).json({shopLists: req.body.shopList, message: 'Список збережено!'})
+		}).catch(() => res.status(500).json({error: 'DB IN FIRE!!!!!'}))
+	} else {
+		res.status(200).json({shopLists: [], message: 'Список оновлено'})
+	}
+})
+
+	// [
+	// {
+	// 	"_id": "65a6c143a00496eec8badf4d",
+	// 	"name": "Name",
+	// 	"count": 12,
+	// 	"alreadyBut": false
+	// },
+	// 	{
+	// 		"_id": "65a6c143a00496eec8badf4e",
+	// 		"name": "Name1",
+	// 		"count": 10,
+	// 		"alreadyBut": false
+	// 	},
+	// 	{
+	// 		"_id": "65a6c143a00496eec8badf4f",
+	// 		"name": "Name2",
+	// 		"count": 13,
+	// 		"alreadyBut": false
+	// 	}
+	// ]

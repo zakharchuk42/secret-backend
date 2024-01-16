@@ -51,24 +51,3 @@ app.post('/shop-lists', async(req, res) => {
 		res.status(200).json({shopLists: [], message: 'Список оновлено'})
 	}
 })
-
-	// [
-	// {
-	// 	"_id": "65a6c143a00496eec8badf4d",
-	// 	"name": "Name",
-	// 	"count": 12,
-	// 	"alreadyBut": false
-	// },
-	// 	{
-	// 		"_id": "65a6c143a00496eec8badf4e",
-	// 		"name": "Name1",
-	// 		"count": 10,
-	// 		"alreadyBut": false
-	// 	},
-	// 	{
-	// 		"_id": "65a6c143a00496eec8badf4f",
-	// 		"name": "Name2",
-	// 		"count": 13,
-	// 		"alreadyBut": false
-	// 	}
-	// ]

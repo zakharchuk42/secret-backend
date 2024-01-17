@@ -62,7 +62,7 @@ app.get('/current-day', (req, res) => {
 		currentDay = list
 	})
 	.then(() => {
-		res.status(200).json(currentDay)
+		res.status(200).json({currentDay: currentDay.currentDay, currentDate: currentDay.currentDate})
 	}).catch(() => res.status(500).json({error: 'DB IN FIRE!!!!!'}))
 });
 
@@ -71,14 +71,36 @@ app.post('/current-day', async (req, res) => {
 
 	db
 	.collection('currentday')
-	.insertMany([req.body.currentDay])
+	.insertMany([req.body])
 	.then(() => {
 		return db.collection('currentday').findOne();
 	})
 	.then((updatedData) => {
 		res.status(200).json({currentDay: updatedData, message: 'Меню на день змінено!'})
 	}).catch(() => res.status(500).json({error: 'DB IN FIRE!!!!!'}))
+});
 
+app.patch('/current-day', (req, res) => {
+	const changes = req.body.dayMill;
+	const updateQuery = {};
+
+	for (const key in changes) {
+		if (changes.hasOwnProperty(key)) {
+
+			const fieldUpdate = `currentDay.${key}`;
+			updateQuery[fieldUpdate] = req.body.dayMill[key];
+		}
+	}
+
+	db.collection('currentday')
+	.updateOne({}, { $set: updateQuery })
+	.then(() => {
+		return db.collection('currentday').findOne();
+	})
+	.then((updatedData) => {
+		res.status(200).json({dayMill: updatedData.currentDay, message: 'Меню оновлено!'});
+	})
+	.catch(() => res.status(500).json({ error: 'DB IN FIRE!!!!!' }));
 });
 
 app.get('/left-products', (req, res) => {
@@ -96,11 +118,15 @@ app.get('/left-products', (req, res) => {
 });
 
 app.patch('/left-products', (req, res) => {
-	let update = ''
-	const key = Object.keys(req.body.changeProduct)[0]
-	update += key + '.howMuch'
+	const changes = req.body.changeProduct;
+	const updateQuery = {};
 
-	const updateQuery = { [update]: req.body.changeProduct[key].howMuch };
+	for (const key in changes) {
+		if (changes.hasOwnProperty(key)) {
+			const fieldUpdate = `${key}.howMuch`;
+			updateQuery[fieldUpdate] = changes[key].howMuch;
+		}
+	}
 
 	db.collection('leftproducts')
 	.updateOne({}, { $set: updateQuery })
